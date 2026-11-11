@@ -1,0 +1,6 @@
+ :root { --vp-c-brand-1: #087b72; --vp-c-brand-2: #0e9186; --vp-c-brand-3: #127d74; --vp-home-hero-name-color: #087b72; }
+.dark { --vp-c-brand-1: #60dfc4; --vp-c-brand-2: #42c8ad; --vp-c-brand-3: #168675; --vp-home-hero-name-color: #60dfc4; }
+.VPHero .name { letter-spacing: -.045em; }
+.VPHero .text { max-width: 760px; letter-spacing: -.035em; }
+.VPFeature { border-top: 3px solid var(--vp-c-brand-1); }
+.vp-doc table { width: 100%; }
