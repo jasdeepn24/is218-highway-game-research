@@ -18,7 +18,7 @@ npm run docs:build
 npm run docs:preview
 ```
 
-The configured path is `/is218-highway-game-research/`. Documentation is in `docs/`; navigation is in `docs/.vitepress/config.mjs`. The build workflow checks documentation and produces a downloadable preview artifact. It does not deploy a public website.
+The configured path is `/is218-highway-game-research/`. Documentation is in `docs/`; navigation is in `docs/.vitepress/config.mjs`. The workflow builds the documentation and deploys it to [GitHub Pages](https://jasdeepn24.github.io/is218-highway-game-research/).
 
 ## Research method
 

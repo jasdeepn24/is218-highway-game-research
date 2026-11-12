@@ -18,10 +18,12 @@
 | Create the VitePress site and preview it locally | Verified | The site loaded in the local browser preview. |
 | Document the game concept, Three.js choice, and initial specification | Verified | See the [research overview](/research/overview), [decision log](/planning/decisions), and [game specification](/planning/specification). |
 | Finish the five user stories | Documented | The [specification](/planning/specification#five-user-stories) includes five labeled stories, each with a positive and negative acceptance check. |
-| Push the site to GitHub | Pending verification | Confirm the current documentation commit and files are on GitHub. |
-| Publish with GitHub Pages | Pending verification | Confirm the deployment succeeds and record the public URL. |
+| Push the site to GitHub | Verified | The documentation is in the [GitHub repository](https://github.com/jasdeepn24/is218-highway-game-research). |
+| Publish with GitHub Pages | Verified | The [successful Actions run](https://github.com/jasdeepn24/is218-highway-game-research/actions/runs/43098761164) deployed the [research site](https://jasdeepn24.github.io/is218-highway-game-research/). |
 | Verify the public site | Pending | Open the public URL and check the homepage, navigation, roadmap, and five user stories. |
 | Get real peer feedback and record it in a GitHub issue | Pending | Ask a peer to review the public site and record their actual feedback and the page it concerns in an issue. |
+
+See also the [career research site](https://jasdeepn24.github.io/is218-career-portfolio-research/).
 
 ## Future work
 
