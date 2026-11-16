@@ -35,3 +35,52 @@ features:
 Soccer and basketball remain documented as [alternatives considered](/research/game-ideas).
 
 The eventual product needs real accounts, saved scores, a private dashboard, and account maintenance. Those requirements are recorded in the [draft specification](/planning/specification), not implemented in this documentation site.
+
+## First Playable Version
+
+This checklist defines the planned first driving demo, based on the
+[draft specification](/planning/specification#first-version).
+All items are unimplemented and unverified; the linked checks describe
+future testing, not completed results.
+
+### Initial driving demo
+
+- [ ] One highway, one drivable car, and a third-person follow camera.
+  Check scene performance with [E01](/planning/experiments#e01)
+  and steering/camera stability with [E02](/planning/experiments#e02).
+- [ ] Keyboard steering, acceleration, braking, pause, and replay.
+  Verify a complete run using the
+  [keyboard test matrix](/research/controllers#test-matrix-not-run)
+  and [gameplay acceptance checks](/planning/specification#us2-—-highway-gameplay-with-keyboard-or-controller).
+- [ ] Bluetooth Xbox and PlayStation controller support on Mac.
+  Use [E08](/planning/experiments#e08) to test physical devices,
+  mappings, analog inputs, keyboard fallback, focus loss,
+  disconnect pause, and reconnects.
+- [ ] Basic traffic with safe spawning.
+  Use [E03](/planning/experiments#e03) to check 100 seeded spawn
+  cases for violations of the player's safety zone.
+- [ ] Simple driving physics and collision detection.
+  Use [E09](/planning/experiments#e09) for repeated braking,
+  turning, and collision cases, and
+  [E02](/planning/experiments#e02) for frame-rate consistency.
+  Rapier remains a candidate pending testing.
+- [ ] A run that ends with a score and can be replayed.
+  Verify the [US2 gameplay checks](/planning/specification#us2-—-highway-gameplay-with-keyboard-or-controller)
+  and [G01–G02 acceptance criteria](/planning/specification#eventual-acceptance-criteria),
+  including stable score and position while paused.
+  Distance-based scoring is the current candidate; permanent score
+  storage belongs to the later backend phase.
+
+### Later additions
+
+- Required backend phase: registration, login/logout, permanently
+  saved scores, a private dashboard, and account maintenance using
+  the [planned Flask/SQLite backend](/planning/accounts).
+- Optional additions: a first-person cockpit camera, extra visual
+  polish, and a near-miss bonus with rules preventing repeated
+  awards for the same encounter, as described in the
+  [draft specification](/planning/specification#first-version).
+
+Keyboard and controller support are part of the initial scope.
+The later account and score requirements remain part of the overall
+project.
