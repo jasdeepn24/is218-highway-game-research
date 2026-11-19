@@ -1,6 +1,6 @@
 # IS218 Highway Game Research
 
-Research and planning by Jasdeep Nagra for an original 3D browser game inspired by the highway-driving experience of Racing in Car 2021. Three.js is selected with keyboard and Bluetooth Xbox/PlayStation controls on Mac. Flask/SQLite is planned for accounts and scores; Rapier is the leading physics candidate. Soccer and basketball are documented as alternatives considered. Swift and Metal are excluded from the build. **This repository contains documentation, not a playable game.**
+Research and planning by Jasdeep Nagra for an original 3D browser game inspired by the highway-driving experience of Racing in Car 2021. Three.js is selected with keyboard and Bluetooth Xbox/PlayStation controls on Mac. Vanilla JavaScript + Vite is selected for gameplay. Flask/SQLite accounts and run endpoints are recorded in [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b); basic movement and collisions are planned, with Rapier only a possible later experiment. Soccer and basketball are documented as alternatives considered. Swift and Metal are excluded from the build. **The VitePress site documents the project; the separate local backend is not yet a playable game.** Start with the [approved engineering plan](docs/planning/engineering-plan.md), [five stories](docs/planning/specification.md), and [Stage 1 verification record](docs/planning/experiments.md#stage-1-verification).
 
 ## Preview
 

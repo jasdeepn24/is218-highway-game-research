@@ -26,7 +26,7 @@ VitePress 1.6.4 is pinned as the stable documentation dependency rather than usi
 
 ## Verification and workflow
 
-Build after editing links or configuration. Review navigation, search, tables, and narrow-screen layout in a browser. The GitHub workflow uploads a built site artifact for preview; it does not deploy it. The artifact can be served with a local static server under the configured base path.
+Build after editing links or configuration. Review navigation, search, tables, and narrow-screen layout in a browser. The existing `.github/workflows/docs.yml` builds and uploads the site artifact, then deploys it to GitHub Pages on pushes to `main` or manual dispatch. It does not run backend or gameplay checks. This documentation update does not publish the site.
 
 ## Keep evidence honest
 

@@ -16,13 +16,13 @@ Use reusable road sections with lane markings, shoulders, barriers, and occasion
 
 ## Vehicle physics
 
-Rapier is the leading candidate. Its [raycast vehicle API](https://rapier.rs/javascript3d/classes/DynamicRayCastVehicleController.html) exposes wheel suspension, steering, engine-force, and brake controls. AI can help connect chassis transforms to visuals, configure simplified colliders, and create repeatable handling tests. It cannot establish realism just by choosing plausible values.
+The approved initial slice uses basic movement and collisions. Rapier is a possible later experiment; the following library-specific research is retained for that option. Its [raycast vehicle API](https://rapier.rs/javascript3d/classes/DynamicRayCastVehicleController.html) exposes wheel suspension, steering, engine-force, and brake controls. AI can help connect chassis transforms to visuals, configure simplified colliders, and create repeatable handling tests. It cannot establish realism just by choosing plausible values.
 
-**Proposal:** begin with forgiving arcade handling, simplified collisions, and a fixed simulation timestep with interpolated visuals. Tune acceleration, braking, steering at speed, center of mass, and suspension. Check instability after a frame hitch and collision tunneling at high speeds. Detailed tire and damage simulation are outside the initial scope. Compare [cannon-es](https://github.com/pmndrs/cannon-es) if integration or tuning becomes a blocker.
+**Earlier research proposal, not an added requirement:** forgiving arcade handling, simplified collisions, and a fixed simulation timestep with interpolated visuals. Tune acceleration, braking, steering at speed, center of mass, and suspension. Check instability after a frame hitch and collision tunneling at high speeds. Detailed tire and damage simulation are outside the initial scope. Compare [cannon-es](https://github.com/pmndrs/cannon-es) if integration or tuning becomes a blocker.
 
 ## Traffic behavior
 
-Traffic AI means decision logic in the game, not necessarily a generative model. Proposed states are cruise, follow, brake, and change lane. AI coding tools can draft these states and tests. Use seeded randomness for repeatability, check front/rear clearance before lane changes, and prevent spawns inside the player's safety zone.
+Traffic AI means decision logic in the game, not necessarily a generative model. Earlier proposed states are cruise, follow, brake, and change lane; the approved first slice requires only basic traffic or obstacles, not this entire behavior model. AI coding tools can draft these states and tests. Use seeded randomness for repeatability, check front/rear clearance before lane changes, and prevent spawns inside the player's safety zone.
 
 Keep background traffic simple and reserve detailed simulation for nearby interactions. Inspect unfair spawns, simultaneous merges, cars braking forever, and visible recycling. No language-model calls are planned in the per-frame driving loop.
 

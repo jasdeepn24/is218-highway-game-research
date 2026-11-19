@@ -32,4 +32,4 @@ Next: [the experiment backlog](/planning/experiments).
 
 ## Research for the chosen stack
 
-Use AI assistance to draft Three.js integration and physics tests, inspect car assets, and explain frame-time problems. See the [asset and audio pipeline](/research/assets), [graphics and traffic research](/research/game-systems), and [controller plan](/research/controllers). Controller code needs physical-device checks; asset generation needs visual inspection. The later Flask/SQLite work needs independent authorization tests. None of these game outcomes have been demonstrated yet.
+Use AI assistance to draft Three.js integration and physics tests, inspect car assets, and explain frame-time problems. See the [asset and audio pipeline](/research/assets), [graphics and traffic research](/research/game-systems), and [controller plan](/research/controllers). Controller code needs physical-device checks; asset generation needs visual inspection. The local Flask/SQLite backend now has [verified test evidence](/planning/experiments#stage-1-verification), including ownership checks. Gameplay, assets and physical controller outcomes remain undemonstrated.
