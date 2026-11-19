@@ -1,4 +1,5 @@
 import './style.css';
+import { startRun, saveRun } from './api.js';
 import { createGame, step, togglePause, DURATION } from './game.js';
 import { keyboard } from './input.js';
 import { createScene } from './scene.js';
@@ -6,6 +7,11 @@ import { createScene } from './scene.js';
 const $ = id => document.getElementById(id);
 let game = createGame();
 let accumulator = 0;
+let ticket;
+let result;
+let saveAttempted = false;
+let busy = false;
+let saved = false;
 const input = keyboard(pause);
 function pause() {
   togglePause(game);
@@ -19,17 +25,50 @@ function loseFocus() {
 window.addEventListener('blur', loseFocus);
 document.addEventListener('visibilitychange', () => { if (document.hidden) loseFocus(); });
 $('pause').onclick = pause;
-$('action').onclick = () => {
+async function save() {
+  busy = true;
+  $('retry').hidden = true;
+  $('save-status').textContent = 'Saving result…';
+  try {
+    const record = await saveRun(ticket, result);
+    saved = true;
+    $('save-status').textContent = `Saved to your account. Score: ${record.score}`;
+  } catch (error) {
+    $('save-status').textContent = `Not saved: ${error.message} Retry saving, or start a new run to discard this result.`;
+    $('retry').hidden = false;
+  } finally {
+    busy = false;
+  }
+}
+$('retry').onclick = save;
+$('action').onclick = async () => {
+  if (busy) return;
   if (game.status === 'paused') pause();
   else {
-    game = createGame();
-    game.status = 'running';
-    input.clear();
-    accumulator = 0;
+    if (game.status === 'over' && !saved && !window.confirm('Discard this unsaved result and start a new run?')) return;
+    busy = true;
+    $('save-status').textContent = 'Starting run…';
+    try {
+      ticket = await startRun();
+      game = createGame();
+      game.status = document.hidden ? 'paused' : 'running';
+      saveAttempted = false;
+      saved = false;
+      result = undefined;
+      $('save-status').textContent = '';
+      $('retry').hidden = true;
+      input.clear();
+      accumulator = 0;
+    } catch (error) {
+      $('save-status').textContent = `Could not start: ${error.message}`;
+    } finally {
+      busy = false;
+    }
   }
   $('action').blur();
 };
 function updateUI() {
+  $('action').disabled = busy;
   $('time').textContent = Math.max(0, DURATION - game.elapsed).toFixed(1);
   $('score').textContent = game.score;
   $('speed').textContent = Math.round(game.speed * 3.6);
@@ -58,6 +97,11 @@ try {
         step(game, input.read(), 1 / 60);
         accumulator -= 1 / 60;
       }
+    }
+    if (game.status === 'over' && !saveAttempted) {
+      saveAttempted = true;
+      result = { score: game.score, elapsed_seconds: game.elapsed, reason: game.reason };
+      void save();
     }
     draw(game);
     updateUI();

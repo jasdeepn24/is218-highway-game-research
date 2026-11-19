@@ -1,4 +1,5 @@
 import os
+import math
 import secrets
 import sqlite3
 import time
@@ -6,7 +7,7 @@ from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for, send_from_directory
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from flask_wtf import FlaskForm, CSRFProtect
 from flask_wtf.csrf import CSRFError, generate_csrf
@@ -87,6 +88,20 @@ def create_app(test_config=None):
     def index():
         return render_template('index.html')
 
+    frontend = Path(app.config.get('FRONTEND_DIST', Path(app.root_path).parent / 'frontend' / 'dist'))
+
+    @app.get('/play/')
+    @login_required
+    def play():
+        if not (frontend / 'index.html').is_file():
+            return render_template('error.html', message='Build the game first: cd game-app/frontend && npm ci && npm run build'), 503
+        return send_from_directory(frontend, 'index.html')
+
+    @app.get('/play/assets/<path:filename>')
+    @login_required
+    def game_asset(filename):
+        return send_from_directory(frontend / 'assets', filename)
+
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         form = Credentials()
@@ -135,7 +150,7 @@ def create_app(test_config=None):
     @app.get('/api/csrf')
     @login_required
     def csrf_token():
-        return jsonify(csrf_token=generate_csrf())
+        return jsonify(csrf_token=generate_csrf(), user_id=current_user.id)
 
     @app.post('/api/runs')
     @login_required
@@ -144,6 +159,9 @@ def create_app(test_config=None):
         db = get_db()
         # Repeated start requests return the same pending ticket; expired tickets are discarded.
         with db:
+            # Explicit new-game action abandons an unfinished ticket (including another tab).
+            if request.get_json(silent=True) == {'restart': True}:
+                db.execute('DELETE FROM runs WHERE user_id = ? AND completed_at IS NULL', (current_user.id,))
             db.execute('DELETE FROM runs WHERE user_id = ? AND completed_at IS NULL AND started_at < ?', (current_user.id, now - 300))
             db.execute('INSERT OR IGNORE INTO runs(id, user_id, started_at) VALUES (?, ?, ?)', (str(uuid4()), current_user.id, now))
             row = db.execute('SELECT * FROM runs WHERE user_id = ? AND completed_at IS NULL', (current_user.id,)).fetchone()
@@ -172,19 +190,30 @@ def create_app(test_config=None):
     def complete_run(run_id):
         row = owned_run(run_id)
         data = request.get_json(silent=True)
-        if not isinstance(data, dict) or set(data) != {'score'} or type(data['score']) is not int or not 0 <= data['score'] <= 2000:
-            return jsonify(error='Submit only an integer score between 0 and 2000'), 400
+        if not isinstance(data, dict) or set(data) != {'score', 'elapsed_seconds', 'reason'}:
+            return jsonify(error='Submit score, elapsed_seconds, and reason'), 400
+        elapsed = data['elapsed_seconds']
+        score = data['score']
+        reason = data['reason']
+        if (type(elapsed) not in (int, float) or not 0 < elapsed <= 20
+                or not math.isfinite(elapsed) or type(score) is not int
+                or not 0 <= score <= math.floor(40 * elapsed)
+                or reason not in ('collision', 'finished')
+                or (reason == 'finished' and elapsed != 20)):
+            return jsonify(error='Invalid duration, end reason, or score (maximum 40 points per active second)'), 400
         if row['completed_at'] is not None:
             return jsonify(error='Run already completed'), 409
         now = time.time()
-        if not 20 <= now - row['started_at'] <= 300:
-            return jsonify(error='Run is too early or expired'), 400
+        wall_elapsed = now - row['started_at']
+        # Pauses add wall time, not active time. Small tolerance covers timer precision.
+        if wall_elapsed < elapsed - 0.25 or wall_elapsed > 300:
+            return jsonify(error='Run timing is invalid or the five-minute ticket expired'), 400
         db = get_db()
         with db:
             changed = db.execute('UPDATE runs SET score = ?, completed_at = ? WHERE id = ? AND user_id = ? AND completed_at IS NULL', (data['score'], now, run_id, current_user.id)).rowcount
         if not changed:
             return jsonify(error='Run already completed'), 409
-        return jsonify(id=run_id, score=data['score'], duration_seconds=20), 200
+        return jsonify(id=run_id, score=data['score'], duration_seconds=elapsed), 200
 
     @app.cli.command('init-db')
     def init_db_command():

@@ -46,7 +46,11 @@ def age(app, run_id, seconds=21):
 
 
 def complete(client, run_id, data=None):
-    return client.post(f'/api/runs/{run_id}/complete', json={'score': 123} if data is None else data, headers=headers(client))
+    payload = {'score': 123, 'elapsed_seconds': 20, 'reason': 'finished'}
+    if data is not None:
+        payload = {**payload, **data} if isinstance(data, dict) and 'score' in data else data
+    return client.post(f'/api/runs/{run_id}/complete', json=payload, headers=headers(client))
+
 
 
 @pytest.fixture
@@ -139,7 +143,7 @@ def test_duplicate_start_and_completion(app, player):
     assert start(player) == run_id
     age(app, run_id)
     assert complete(player, run_id).status_code == 200
-    assert complete(player, run_id, {'score': 999}).status_code == 409
+    assert complete(player, run_id, {'score': 456}).status_code == 409
     assert player.get(f'/api/runs/{run_id}').json['score'] == 123
     assert len(player.get('/api/runs').json['runs']) == 1
     assert start(player) != run_id
@@ -162,7 +166,7 @@ def test_timing_and_expiration(app, player):
     assert complete(player, run_id).status_code == 404
 
 
-@pytest.mark.parametrize('score', [0, 2000])
+@pytest.mark.parametrize('score', [0, 800])
 def test_score_boundaries(app, player, score):
     run_id = start(player)
     age(app, run_id)
@@ -192,7 +196,7 @@ def test_concurrent_duplicate_completion(app, player):
         login(client)
     csrf_headers = [headers(client) for client in clients]
     def submit(index):
-        return clients[index].post(f'/api/runs/{run_id}/complete', json={'score': 123}, headers=csrf_headers[index]).status_code
+        return clients[index].post(f'/api/runs/{run_id}/complete', json={'score': 123, 'elapsed_seconds': 20, 'reason': 'finished'}, headers=csrf_headers[index]).status_code
     with ThreadPoolExecutor(max_workers=2) as executor:
         assert sorted(executor.map(submit, [0, 1])) == [200, 409]
     assert len(player.get('/api/runs').json['runs']) == 1
@@ -212,3 +216,74 @@ def test_login_rotates_csrf_and_logout_clears_session(client):
     client.post('/logout', headers=headers(client))
     with client.session_transaction() as session:
         assert '_user_id' not in session
+
+
+def test_integrated_early_collision_and_returning_player(app, player):
+    run_id = start(player)
+    age(app, run_id, 5)
+    result = {'score': 75, 'elapsed_seconds': 5, 'reason': 'collision'}
+    assert complete(player, run_id, result).status_code == 200
+    assert complete(player, run_id, result).status_code == 409
+    player.post('/logout', headers=headers(player))
+    assert player.get(f'/api/runs/{run_id}').status_code == 401
+    assert login(player).status_code == 302
+    assert player.get(f'/api/runs/{run_id}').json['score'] == 75
+    assert run_id in player.get('/dashboard').text
+
+
+def test_paused_run_uses_active_time(app, player):
+    run_id = start(player)
+    age(app, run_id, 90)  # 20 seconds driving plus 70 seconds paused.
+    assert complete(player, run_id, {'score': 500, 'elapsed_seconds': 20, 'reason': 'finished'}).status_code == 200
+
+
+@pytest.mark.parametrize('data', [
+    {'score': 0, 'elapsed_seconds': 0, 'reason': 'collision'},
+    {'score': 0, 'elapsed_seconds': True, 'reason': 'collision'},
+    {'score': 0, 'elapsed_seconds': float('nan'), 'reason': 'collision'},
+    {'score': 0, 'elapsed_seconds': 10**400, 'reason': 'collision'},
+    {'score': 0, 'elapsed_seconds': 21, 'reason': 'collision'},
+    {'score': 0, 'elapsed_seconds': 5, 'reason': 'finished'},
+    {'score': 201, 'elapsed_seconds': 5, 'reason': 'collision'},
+    {'score': 0, 'elapsed_seconds': 5, 'reason': 'invented'},
+])
+def test_integrated_result_validation(app, player, data):
+    run_id = start(player)
+    age(app, run_id, 25)
+    assert complete(player, run_id, data).status_code == 400
+    assert player.get('/api/runs').json['runs'] == []
+
+
+def test_active_time_cannot_exceed_wall_time(player):
+    run_id = start(player)
+    assert complete(player, run_id, {'score': 50, 'elapsed_seconds': 5, 'reason': 'collision'}).status_code == 400
+
+
+def test_explicit_replay_abandons_only_own_pending_ticket(app, player):
+    old = start(player)
+    other = app.test_client()
+    register(other, 'second')
+    login(other, 'second')
+    other_id = start(other)
+    response = player.post('/api/runs', json={'restart': True}, headers=headers(player))
+    assert response.status_code == 201 and response.json['id'] != old
+    assert player.get(f'/api/runs/{old}').status_code == 404
+    assert other.get(f'/api/runs/{other_id}').status_code == 200
+
+
+def test_game_routes_require_login_and_serve_build(tmp_path):
+    build = tmp_path / 'dist'
+    (build / 'assets').mkdir(parents=True)
+    (build / 'index.html').write_text('<h1>game build</h1>')
+    (build / 'assets' / 'game.js').write_text('export const game = true;')
+    app = create_app({'TESTING': True, 'SECRET_KEY': 'test', 'DATABASE': str(tmp_path / 'routes.sqlite3'), 'FRONTEND_DIST': str(build)})
+    client = app.test_client()
+    assert client.get('/play/').status_code == 302
+    assert client.get('/play/assets/game.js').status_code == 302
+    register(client)
+    login(client)
+    assert 'game build' in client.get('/play/').text
+    assert 'export const' in client.get('/play/assets/game.js').text
+    assert client.get('/play/assets/../index.html').status_code == 404
+    (build / 'index.html').unlink()
+    assert client.get('/play/').status_code == 503

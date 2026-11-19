@@ -1,28 +1,126 @@
-# Highway Game — Stages 1 and 2
+# Highway Game — integrated Review 2 slice
 
-Flask authentication and SQLite persistence for the Review 2 highway game.
-This application is separate from the VitePress research website. Stage 2 adds a
-standalone Three.js game in `frontend/`. Stage 3 will connect it to the existing
-authentication and run API; Stage 2 does not send or save results.
+Flask serves authentication, private results, the built Three.js game, and the JSON
+API from one origin. Vite builds the frontend; no separate frontend server or CORS
+configuration is needed. VitePress research documentation remains separate.
 
-## Install on Mac
+## Install and run on Mac
 
-Use Python 3.13 (tested with the existing Python 3.13.0 environment; use a current
-patched Python release for deployment). From the repository root:
+Use Python 3.13 and Node.js 22.12+ (verified with Python 3.13.0 / Node 24.11.1).
+From the repository root:
 
 ```sh
 cd game-app
 # Only if .venv does not already exist:
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip --isolated install --index-url https://pypi.org/simple --upgrade pip
 python -m pip --isolated install --index-url https://pypi.org/simple -r requirements-dev.txt
-python -m pip check
+cd frontend
+npm ci
+npm run build
+cd ..
+python -m flask --app highway run --host 127.0.0.1 --port 5000
 ```
 
-`requirements.txt` pins the runtime dependencies, including transitive packages.
-`requirements-dev.txt` additionally pins the test dependencies. For a runtime-only
-installation, install `requirements.txt` instead.
+Open http://127.0.0.1:5000 . If that port is occupied, use `--port 5050` and open
+http://127.0.0.1:5050 instead. Use the same host/port throughout the journey.
+After frontend edits, rerun `npm run build` and reload `/play/`.
+`npm run dev` alone is not the integrated application.
+
+## Verify the complete journey
+
+1. Register a new username (3–32 ASCII letters, digits, underscores) and password
+   (12–128 characters). Sign in with that account.
+2. Select **Play highway game**, then **Start driving**. W/Up accelerates,
+   S/Down brakes, A/D or Left/Right steers. P/Escape or Pause pauses/resumes.
+   Leaving the browser automatically pauses and clears held input.
+3. Cover distance and avoid orange traffic for 20 active seconds, or hit traffic
+   to end early. The game automatically submits the result and displays
+   **Saved to your account. Score: …** only after server confirmation.
+4. Open **My results / Sign out**. Check the result, sign out, then sign in again:
+   the same result must remain. Restarting Flask with the same database also
+   preserves it. A second account should see only its own results.
+5. Replay for a new run. Pause partway through and confirm the timer/score stop;
+   resume and finish within five minutes of starting.
+
+If saving fails, the game says **Not saved** and offers **Retry saving**. Retry
+uses the same run ID, so a lost HTTP response cannot create a second score. If your
+session expired, use the **Sign in** link (new tab), log into the original account,
+return, and retry. Keep the game tab open: unsaved results are in memory only.
+Starting another run requires confirmation before discarding an unsaved result.
+
+## Persistence and security
+
+SQLite lives in `game-app/instance/highway.sqlite3`. Startup and optional
+`python -m flask --app highway init-db` create missing tables without dropping data.
+No schema migration is required for Stage 3; existing accounts and scores remain.
+
+Werkzeug hashes passwords with salted scrypt. Flask-Login protects gameplay and
+results; CSRF protects all writes, including logout. Ownership comes from the
+session, never submitted user IDs. Sessions use HttpOnly, SameSite=Lax cookies and
+a two-hour inactivity lifetime. `instance/secret.key` is generated owner-only on
+first launch and reused. Instance data, secrets, `.venv`, caches, `node_modules`,
+and `frontend/dist` are ignored by Git.
+
+For HTTPS deployment, set `HIGHWAY_SECRET_KEY` in the environment/secret manager
+and `HIGHWAY_HTTPS=1` for Secure cookies. `.env` files are not loaded automatically.
+The Flask development server is local-only. Rate limiting, password recovery,
+central session revocation and account maintenance remain outside this slice.
+
+## Run API and timing
+
+All API routes require login. Obtain `csrf_token` and `user_id` from `GET /api/csrf`;
+send `X-CSRFToken` on writes with same-origin cookies. The frontend checks that a
+retry still belongs to the original signed-in account.
+
+- `POST /api/runs`: returns a server-issued `id`, `duration_seconds: 20`, and
+  `expires_at`. Empty requests reuse a pending ticket; the game's explicit
+  `{"restart":true}` starts fresh and abandons the owner's unfinished ticket.
+  Starting in a second tab therefore invalidates an unfinished run in the first.
+- `POST /api/runs/<id>/complete`: accepts exactly
+  `{"score":75,"elapsed_seconds":5,"reason":"collision"}`.
+- `GET /api/runs`: the owner's completed runs only.
+- `GET /api/runs/<id>`: the owner's run; nonexistent/other-owner IDs return 404.
+
+`elapsed_seconds` is finite active simulation time, greater than zero and at most
+20. `reason` is `collision` or `finished`; `finished` requires exactly 20 seconds.
+Score is an integer from zero through `floor(40 * elapsed_seconds)` (maximum speed
+40 m/s, one point per meter). Active time cannot exceed server wall time, allowing
+0.25 seconds for timing precision. Collisions save immediately; pauses simply add
+wall time. Tickets expire after five wall-clock minutes, including pauses and save
+retries. Expired results are rejected explicitly; start another run after expiry.
+
+The old score-only payload is rejected. Historical scores remain readable even if
+they exceed the new bound. Duplicate completion returns 409; an atomic conditional
+update prevents concurrent duplicates. The frontend reads back a duplicate's stored
+score to confirm a successful prior save rather than claiming a second save.
+
+These checks are practical validation, not anti-cheat. The server does not simulate
+traffic and cannot prove a collision, actual input, distance, or pauses. A modified
+client can fabricate a plausible result after waiting long enough. The 40 m/s bound
+is deliberately conservative and does not model the acceleration curve.
+
+## Tests and build
+
+From `game-app/`:
+
+```sh
+.venv/bin/python -m pytest -q
+cd frontend
+npm test
+npm run build
+```
+
+The 38 original backend test cases remain, with helpers/boundary expectations
+updated for the new submission contract (800 maximum rather than 2000). Additional
+integration checks cover early collisions, paused runs, invalid timing/reasons,
+replay tickets, protected build routes, duplicate recovery, and account changes.
+The six original gameplay tests remain unchanged. Tests use temporary databases;
+manual Chromium verification also uses an isolated temporary database.
+
+Vite emits the existing >500 kB Three.js chunk warning (about 134 kB gzipped).
+The build succeeds. No graphics, audio, controller support, or physics upgrades
+are included; Xbox/PlayStation support remains a future hardware-tested requirement.
 
 ### Certificate issue investigated
 
@@ -42,139 +140,3 @@ If plain Python HTTPS calls still fail outside pip, run the official
 Python.org installation, then retry. That system-wide repair was not performed
 here. For managed networks, use your administrator's approved CA bundle via
 `PIP_CERT`; never bypass verification or download an untrusted certificate.
-
-## Run locally
-
-```sh
-cd game-app  # omit if already here
-source .venv/bin/activate
-python -m flask --app highway init-db
-python -m flask --app highway run --host 127.0.0.1 --port 5000
-```
-
-Open http://127.0.0.1:5000 . Register a username (3–32 ASCII letters, numbers,
-underscores) and password (12–128 characters), sign in, view your private results,
-and sign out. Usernames are case-insensitive and stored lowercase. Passwords use
-Werkzeug's salted scrypt hash. No game or pretend score submission UI is provided.
-
-The application initializes missing tables on startup; `init-db` is also available
-and does **not** drop tables or erase data. Data lives in `instance/highway.sqlite3`.
-The first local launch creates an owner-readable/writable `instance/secret.key` and
-reuses it on restart. Both are ignored by Git, as are `.venv`, caches, and `.env`
-files. Do not delete the instance directory if you want to preserve accounts/runs.
-
-For deployment, supply a strong `HIGHWAY_SECRET_KEY` through the environment or a
-secret manager and set `HIGHWAY_HTTPS=1` behind HTTPS to enable Secure cookies.
-The application does not load `.env` files automatically. The Flask development
-server is for local use. Sessions expire after two hours of inactivity; cookies
-are HttpOnly and SameSite=Lax. POST forms and API writes require CSRF tokens.
-
-## Backend API contract (Stage 3 integration)
-
-All `/api/*` routes require a signed-in session. Missing authentication returns
-401 (a write without valid CSRF may return 400 first). The dashboard redirects
-signed-out users to sign-in. No cross-origin API access is configured.
-
-| Request | Behavior |
-| --- | --- |
-| `GET /api/csrf` | Obtain `csrf_token` for the current session. |
-| `POST /api/runs` | Start a server-issued run; returns `id`, `duration_seconds: 20`, and `expires_at` (Unix seconds). Repeated starts reuse the pending run. |
-| `POST /api/runs/<id>/complete` | Submit JSON `{"score":123}` and the `X-CSRFToken` header. |
-| `GET /api/runs` | List only the current user's completed runs. |
-| `GET /api/runs/<id>` | Read the current user's pending or completed run. |
-
-The future same-origin frontend should use session cookies and refresh its CSRF
-token after signing in. It must obtain a run ID before gameplay. A completion must
-arrive 20–300 seconds after the server start time. Score must be an integer from
-0 through 2000; booleans, fractional values, extra fields, and malformed JSON are
-rejected. The bound is provisional for Stage 2's distance scoring and must be
-revisited if scoring rules change. The client cannot select the owner or timing.
-
-Each run can be completed only once. A conditional database update also rejects
-concurrent duplicate completions with 409. Unknown and other players' IDs both
-return 404. Completed runs cannot be edited/deleted through any route. An expired
-pending ticket is discarded when its owner starts again. Only one pending run per
-player is allowed, including across tabs. Starting again after completion is a
-new legitimate run, not a duplicate of the previous result.
-
-To exercise the API without implementing gameplay, sign in and use the browser
-console on the local app:
-
-```js
-const {csrf_token} = await (await fetch('/api/csrf')).json();
-const headers = {'X-CSRFToken': csrf_token, 'Content-Type': 'application/json'};
-const run = await (await fetch('/api/runs', {method: 'POST', headers})).json();
-// Wait at least 20 seconds, then submit once:
-await fetch(`/api/runs/${run.id}/complete`, {
-  method: 'POST', headers, body: JSON.stringify({score: 123})
-});
-// Reload My results to see the saved result.
-```
-
-## Tests
-
-```sh
-cd game-app  # omit if already here
-source .venv/bin/activate
-python -m pytest -q
-```
-
-Tests keep CSRF enabled and use temporary SQLite databases. They cover registration,
-case-insensitive duplicate usernames, validation, scrypt hashing, failed login,
-logout, session/CSRF rotation, unauthorized access, cross-user isolation, restart
-persistence, non-destructive initialization, foreign keys, score bounds, malformed
-JSON, expired/early runs, duplicate starts, and sequential/concurrent duplicate
-completions. Timing tests age database tickets instead of sleeping for 20 seconds.
-
-## Scope and limitations
-
-The server validates ownership, elapsed time, shape/range of scores, and uniqueness;
-it does not simulate driving. A modified client can wait and submit a fabricated
-score within the allowed range. This is practical validation, not anti-cheat.
-Server elapsed time includes client pauses/network delay. Stage 2 must decide how
-to handle a run interrupted for more than five minutes.
-
-Registration/login rate limiting, password recovery, account maintenance, deployment
-configuration, and production monitoring are not implemented in Stage 1. Local
-logout clears the browser session; signed cookie sessions do not offer central
-revocation of an already stolen cookie. Protect the secret and use HTTPS when
-hosting. Database schema migrations will be needed if future stages change tables.
-
-Runtime pins were checked with `pip-audit` against PyPI advisories during this work:
-no known vulnerabilities were reported. This is a point-in-time check, not a promise
-of permanent safety. Optional recheck after installing `pip-audit`:
-
-```sh
-python -m pip_audit --disable-pip --no-deps -r requirements.txt
-```
-
-## Stage 2: play locally
-
-Use Node.js 22.12+ (verified with Node 24.11.1). From the repository root:
-
-```sh
-cd game-app/frontend
-npm ci
-npm run dev
-```
-
-Open the Local URL printed by Vite (normally http://127.0.0.1:5173/).
-Flask is not needed for this standalone demo; its application and database are
-unchanged. `npm test` runs six essential Vitest rule tests; `npm run build` creates
-ignored `frontend/dist/` output. The lockfile pins dependencies.
-
-Click **Start driving**. W/Up accelerates, S/Down brakes, A/D or Left/Right steers.
-P/Escape or the Pause button pauses/resumes. Losing focus automatically pauses and
-clears held keys. Drive for 20 seconds of active simulation time, avoid orange
-stationary traffic, and earn one point per meter. A collision ends the run early;
-**Drive again** resets it. Scores are in-memory only. The simulation uses a fixed
-60 Hz step, caps speed at 40 m/s, and limits steering to the road. Severe rendering
-stalls are capped to avoid a large jump; this can extend wall-clock run duration.
-
-`src/game.js` owns rules, `input.js` owns keyboard input, `scene.js` draws simple
-Three.js geometry, and `main.js` coordinates the loop/UI. No React, Rapier, audio,
-or gamepad code is included. Xbox/PlayStation support remains a future requirement.
-
-Stage 3 must resolve early collision results versus the backend's 20-second minimum
-submission time, and pauses versus its five-minute ticket expiry. This stage does
-not alter those backend rules or implement API integration.

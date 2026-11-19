@@ -1,6 +1,6 @@
 # Flask and SQLite backend
 
-**Stage 1 is committed and verified locally.** Source: [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b). See the [Stage 1 verification record](/planning/experiments#stage-1-verification) for checked behavior, source fingerprints and test results. Gameplay integration and account maintenance remain planned. The [approved stories](/planning/specification#five-user-stories) govern current requirements.
+**Stage 1 is committed and verified locally.** Source: [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b). See the [Stage 1 verification record](/planning/experiments#stage-1-verification) for checked behavior, source fingerprints and test results. The minimum gameplay integration is now verified locally; account maintenance remains planned. See the [Stage 3 record](/planning/experiments#stage-3-verification). The [approved stories](/planning/specification#five-user-stories) govern current requirements.
 
 ## Responsibilities
 
@@ -29,19 +29,36 @@ Proposed routes cover registration, login/logout, the private dashboard, submitt
 
 Never trust a submitted user ID to select the score owner. Never store plain passwords or privileged secrets in client code. Validate score shape, ranges, duration, and duplicate submission IDs. Plausibility checks reduce easy abuse but do not prove that a client-side run was honest.
 
-## Current API and remaining integration
+## Current API and integration
 
 Source inspection confirms registration, login/logout, a protected dashboard, CSRF tokens, and start/list/read/complete run endpoints. The dashboard shows an empty state and a run list; totals and account-maintenance routes are absent. See the verification record for test coverage rather than treating source presence as complete story acceptance.
 
-The current API issues a server-owned run ID and accepts one integer score from 0–2000 only 20–300 seconds after the server start. A second completion is rejected with 409. The client cannot select the owner. These are current implementation details, not changes to the approved gameplay rules.
+The API issues a server-owned run ID and accepts one completion with integer score,
+active `elapsed_seconds`, and `reason` (`collision` or `finished`). Active duration
+must be greater than zero and at most 20 seconds; `finished` requires 20. Score
+cannot exceed `floor(40 * elapsed_seconds)`, matching the game's 40 m/s speed cap.
+Duplicate completion is rejected with 409 and the owner is derived from the session.
+Historical stored scores remain readable; the old score-only request is rejected.
 
-### Priority integration decision: run timing
+### Resolved integration decision: run timing
 
-**Unresolved; required for Review 2 integration.** A collision can end the approved run before 20 seconds, but the current backend rejects completion until 20 wall-clock seconds have elapsed. Pause must freeze movement, score and the gameplay timer, yet the backend clock keeps advancing; a long pause can expire the ticket after 300 seconds even though fewer than 20 seconds were played.
+**Implemented locally, November 19, 2026.** Collisions can save before 20 seconds.
+Active duration cannot exceed server wall time by more than 0.25 seconds; pauses
+freeze simulation time while wall time advances. The five-minute wall-clock ticket
+expiry remains. Expired results produce an explicit unsaved error, with retry or
+an explicit new-run action; the client never silently saves under a replacement ID.
+No server simulation or new database columns were needed.
 
-**Proposed simple solution, not implemented:** send active gameplay duration and an end reason (`collision` or `time_limit`) with the score. The client accumulates active time only while unpaused. Permit collision completion before 20 active seconds; require 20 active seconds for a time-limit finish, with a small documented numerical tolerance. Replace the blanket 20-second server minimum with reason/duration validation: active duration must be within 0–20 seconds and cannot exceed server elapsed time beyond the tolerance. Keep server-issued IDs, ownership, CSRF, score validation and single-completion checks. Client duration and collision claims remain untrusted plausibility inputs, not proof of honest play.
+Flask serves the Vite build at protected `/play/` routes on the same origin as auth
+and the API. The game starts only after receiving a ticket, saves on collision or
+timer completion, confirms the persisted score, and uses the same ID for retries.
+Explicit replay abandons an unfinished ticket owned by that player; another tab's
+unfinished run can therefore be invalidated. Existing completed scores are unchanged.
 
-Treat the existing 300-second wall-clock expiry as a separate ticket lifetime, not the gameplay timer. If a long pause expires it, show an explicit unsaved/expired result and offer a new run; do not silently save under a new ticket or count paused time toward gameplay. Confirm this expiry behavior and tolerance before implementation. This proposal preserves collision/20-second endings and pause semantics without adding a server simulation; no backend changes have been made.
+Duration and collision claims remain untrusted. A modified client can submit a
+plausible fabricated score after waiting; these checks do not prove honest driving.
+See the [Stage 3 verification record](/planning/experiments#stage-3-verification)
+and local `game-app/README.md` for exact commands, tests, and limitations.
 
 Local logout clears the browser session; the current signed-cookie approach does not centrally revoke a copied session cookie. US5 still needs a documented password-change/session-invalidation flow. Score plausibility checks cannot prove honest gameplay.
 

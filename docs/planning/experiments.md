@@ -107,3 +107,51 @@ are made by the game. Stage 3 must reconcile early collisions with the backend's
 20-second minimum result time and paused runs with ticket expiry. No physical
 controller testing, performance benchmark, or anti-cheat claim is made here.
 See `game-app/README.md` in the repository for local commands and remaining limits.
+
+## Stage 3 verification
+
+**November 19, 2026 — minimum Review 2 integration, local and uncommitted.**
+Flask serves the Vite build at `/play/` with the existing login session and CSRF
+protection. The game obtains a server-owned ticket, submits the actual local run
+result, and confirms the stored score. Results remain private and persistent.
+
+The [timing decision](/planning/accounts#resolved-integration-decision-run-timing)
+permits early collisions using active duration, retains the five-minute ticket
+lifetime, and limits score to 40 points per active second. No schema migration,
+controller work, graphics changes, or full account maintenance was added.
+
+### Automated checks actually run
+
+- Backend: **51 pytest cases passed**. The original 38 cases remain; their submission
+  helper, concurrent payload and upper score-boundary expectations were adapted to
+  the new contract. Thirteen added cases cover early collision persistence, paused
+  results, malformed/nonfinite/oversized durations, implausible scores, timing,
+  fresh replay tickets, and protected build routes. Existing tests also verify
+  server-restart persistence, CSRF, cross-user ownership, and concurrent duplicates.
+- Frontend: **9 Vitest cases passed**: the original six gameplay tests plus three
+  API integration tests for duplicate recovery, account switching, and rejected saves.
+- Vite production build passed; existing chunk-size warning remains (about 537 kB
+  minified / 134 kB gzipped). No new runtime dependency was added.
+
+### Real Chromium journey
+
+Used Google Chrome with an isolated temporary SQLite database and test account.
+Registered, signed in, opened the actual rendered 3D game, paused/resumed, then
+collided with traffic at approximately 10.2 active seconds. The game confirmed
+**Saved to your account. Score: 91**. Replayed, drove and braked, then reached the
+20-second finish; the game confirmed a second saved score of **10**. Both appeared
+in My results. Signed out; direct dashboard access redirected to sign-in. Signed
+back in and observed both original run IDs and scores still present. No console
+errors were captured in the verification tab.
+
+### Remaining limits
+
+Active duration and collision reason are client claims; plausibility checks cannot
+prove honest driving. Pauses beyond five wall-clock minutes expire the ticket;
+errors are explicit and unsaved results remain only in the open tab. Starting a
+new run abandons the owner's unfinished ticket, including one in another tab.
+Hardware controllers, full Review 3 dashboard/account maintenance and production
+hosting remain future work. CI configuration already covers tests/builds, but these
+Stage 3 changes have not been committed, pushed, or run on GitHub Actions.
+
+See `game-app/README.md` for exact install/build/run commands and the manual journey.
