@@ -40,3 +40,16 @@
 Keep modules focused, apply SRP, dependency inversion, KISS and DRY, and compare a Strategy-style keyboard/controller input interface with direct conditionals before choosing. No additional design patterns are approved without a specific problem. The plan owns the testing, quality and Definition of Done details.
 
 Local backend evidence does not establish completed gameplay, physical controller compatibility or a finished user journey. Source is recorded in [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b); see the [verification record](/planning/experiments#stage-1-verification).
+
+
+## D10 · Minimal same-origin integration and active run time
+
+**Implemented · November 19, 2026, within the approved Stage 3 scope.** Flask serves
+the Vite build and authenticated API on one origin. Submit active duration and
+`collision`/`finished` alongside the score; accept early collisions, require 20
+active seconds for normal completion, cap scores at 40 points per active second,
+and compare duration to server wall time with 0.25-second tolerance. Keep the
+five-minute ticket lifetime and show explicit expiry/save errors. Reuse run IDs on
+save retries and keep existing authentication, CSRF, ownership and atomic completion.
+No schema migration or server-side driving simulation. See the [backend timing
+record](/planning/accounts#resolved-integration-decision-run-timing) for limitations.

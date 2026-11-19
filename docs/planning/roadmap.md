@@ -48,7 +48,7 @@ Introduce relevant fast lint/test CI checks alongside Stages 1–3 as tools beco
 
 **Responsibilities:** I define requirements, choose the design, review AI-generated code, verify the application, and maintain the project record. Codex assists with implementation and tests. A real classmate provides independent feedback. AI does not replace the reviewer.
 
-These are approved milestones, not completion claims. Stage 1 has a local implementation and a verified backend test run, with source recorded in [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b). See the [verification record](/planning/experiments#stage-1-verification). Stages 2–4 remain planned; earlier backend dashboard work does not complete the integrated user journey. Hardware controller checks and the input-pattern experiment remain open.
+These are approved milestones, not completion claims. Stage 1 has a local implementation and a verified backend test run, with source recorded in [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b). See the [verification record](/planning/experiments#stage-1-verification). Stage 2 and the minimum Review 2 integration are now verified locally; see the [Stage 3 record](/planning/experiments#stage-3-verification). Full Review 3 dashboard/account maintenance and Stage 4 remain unfinished. Hardware controller checks and the input-pattern experiment remain open.
 
 ## Open details
 

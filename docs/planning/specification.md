@@ -4,7 +4,7 @@
 
 ## First version
 
-See the approved [first driving slice and project boundaries](/planning/engineering-plan#_1-project-goal-and-scope). Controller support remains required and separately subject to real-hardware testing. The playable game and complete account-to-run journey remain unfinished; see [verified Stage 1 results](/planning/experiments#stage-1-verification).
+See the approved [first driving slice and project boundaries](/planning/engineering-plan#_1-project-goal-and-scope). Controller support remains required and separately subject to real-hardware testing. The keyboard game and minimum account-to-saved-run journey are now verified locally; see the [Stage 3 results](/planning/experiments#stage-3-verification). This does not complete future controller, full dashboard, or account-maintenance requirements.
 
 ## Five user stories
 
