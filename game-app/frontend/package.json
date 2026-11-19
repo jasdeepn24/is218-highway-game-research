@@ -1,1 +1,1 @@
-{"name":"highway-game","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"vite build","test":"vitest run"},"dependencies":{"three":"0.187.0"},"devDependencies":{"vite":"8.3.8","vitest":"5.1.1"}}
+{"name":"highway-game","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"vite build","test":"vitest run"},"dependencies":{"three":"0.187.0"},"devDependencies":{"@emnapi/core":"2.0.0-beta.2","@emnapi/runtime":"2.0.0-beta.2","vite":"8.3.8","vitest":"5.1.1"}}
