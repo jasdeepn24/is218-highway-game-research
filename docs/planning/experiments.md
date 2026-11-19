@@ -76,3 +76,34 @@ Known limits and next decision:
 ## Rules for interpreting results
 
 Define pass criteria before running. Preserve failures rather than only saving the best output. A working demo on one laptop does not establish browser-wide compatibility. A screenshot cannot validate controls or physics. A generated test suite cannot establish correctness if its expectations simply repeat the same implementation mistake.
+
+## Stage 2 verification
+
+**November 18, 2026 — local standalone keyboard slice.** The existing
+`codex/review2-first-slice` branch was fast-forwarded to GitHub `main` at `c438ade`;
+the merged Stage 1 and planning files were preserved.
+
+Implemented in `game-app/frontend/`: Three.js geometry, three lanes, third-person
+camera, keyboard acceleration/braking/steering, stationary traffic, collision end,
+20-second active timer, distance score, pause/focus-loss handling, and replay.
+Rules are independent of rendering and input. Controller support remains planned.
+
+- Six Vitest tests passed: movement/scoring, pause, timer/replay, collision/lane
+  separation, safe distant spawning, and frame-rate consistency.
+- The unchanged backend passed all 38 pytest tests. A diagnostic invocation from
+  the repository root initially failed to import `highway`; adding `game-app` to
+  the Python import path allowed the full suite to run successfully.
+- Vite production build passed. Its Three.js bundle is about 535.58 kB minified /
+  133.39 kB gzipped, producing Vite's standard 500 kB chunk warning.
+- Local in-app browser: observed acceleration, steering, braking to zero,
+  pause/resume, collision with final score, replay reset, and timer completion at
+  0.0 seconds. No browser console errors were captured. Narrow-screen header
+  overflow was corrected and visually rechecked.
+- Added application CI for pytest, Vitest, and the frontend build. It has not run
+  on GitHub yet. Existing documentation deployment workflow is unchanged.
+
+This is not the integrated Review 2 journey: no authentication or score API calls
+are made by the game. Stage 3 must reconcile early collisions with the backend's
+20-second minimum result time and paused runs with ticket expiry. No physical
+controller testing, performance benchmark, or anti-cheat claim is made here.
+See `game-app/README.md` in the repository for local commands and remaining limits.
