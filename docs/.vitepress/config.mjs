@@ -7,7 +7,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Research', link: '/research/overview' },
-      { text: 'Planning', link: '/planning/roadmap' },
+      { text: 'Engineering plan', link: '/planning/engineering-plan' },
       { text: 'Experiments', link: '/planning/experiments' },
       { text: 'Sources', link: '/research/sources' }
     ],
@@ -24,8 +24,9 @@ export default defineConfig({
         { text: 'Source library', link: '/research/sources' }
       ]},
       { text: 'Plan the project', items: [
+        { text: 'Engineering plan', link: '/planning/engineering-plan' },
         { text: 'Roadmap', link: '/planning/roadmap' },
-        { text: 'Draft specification', link: '/planning/specification' },
+        { text: 'Game specification', link: '/planning/specification' },
         { text: 'Accounts & saved scores', link: '/planning/accounts' },
         { text: 'Experiment backlog', link: '/planning/experiments' },
         { text: 'Decision log', link: '/planning/decisions' }
@@ -35,6 +36,6 @@ export default defineConfig({
     search: { provider: 'local' },
     outline: [2, 3],
     socialLinks: [{ icon: 'github', link: 'https://github.com/jasdeepn24/is218-highway-game-research' }],
-    footer: { message: 'IS218 · Jasdeep Nagra · Research and planning only', copyright: 'Research snapshot: November 11, 2026' }
+    footer: { message: 'IS218 · Jasdeep Nagra · Research and engineering evidence', copyright: 'Updated: November 18, 2026' }
   }
 })

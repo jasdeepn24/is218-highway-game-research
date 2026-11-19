@@ -1,20 +1,26 @@
-# Draft game specification
+# Game specification
 
-**Direction accepted; detailed specification remains a draft.** Build a small, optimized 3D highway game for browsers using Three.js, with keyboard and Bluetooth Xbox/PlayStation controller support on Mac. Use a suitable physics library, with Rapier the leading candidate. Plan Flask/SQLite for the later backend. Swift and Metal are excluded.
-
-## Intended experience
-
-Start a short highway run, avoid traffic, see your score when the run ends, and replay. In the later Flask/SQLite phase, finish the required accounts, private dashboard, and saved scores before adding optional camera modes or visual polish.
+**Approved · November 2026.** The [engineering plan](/planning/engineering-plan) defines the goal, audience assumption, scope, stack, architecture, testing strategy and Definition of Done. This page owns the five user stories and acceptance criteria.
 
 ## First version
 
-One highway, one drivable car, basic traffic, simple driving physics, collision detection, scoring, and replay. Use lightweight free or appropriately licensed 3D assets. Support keyboard and Bluetooth controller steering, acceleration, and braking on Mac. The default camera follows behind the car in third person so players can see their vehicle and nearby traffic. A distance-based score is the simplest candidate. A near-miss bonus is optional and needs rules to prevent repeated awards for the same encounter.
-
-Racing in Car 2021 serves as visual inspiration. The first version prioritizes smooth performance and small downloads. A first-person cockpit camera and extra visual polish are optional additions for later.
+See the approved [first driving slice and project boundaries](/planning/engineering-plan#_1-project-goal-and-scope). Controller support remains required and separately subject to real-hardware testing. The playable game and complete account-to-run journey remain unfinished; see [verified Stage 1 results](/planning/experiments#stage-1-verification).
 
 ## Five user stories
 
-These are acceptance checks for future implementation.
+| ID / Priority | User story | Acceptance criteria |
+|---|---|---|
+| US1 — High | As a player, I want to register, sign in, and sign out so I can use my own account. | Valid registration/login succeeds; duplicate accounts and incorrect passwords fail; logout removes protected access. |
+| US2 — High | As a player, I want to drive and avoid traffic so I can complete a scored run. | Keyboard controls operate the car; collision or the 20-second limit ends the run; pause stops progress; results and replay work. Controller checks remain separate until tested. |
+| US3 — High | As a player, I want to save my completed runs so I can return to them later. | A valid result belongs to the signed-in user, survives server restart, and cannot be duplicated by retrying the same submission. Invalid or unauthorized requests fail. |
+| US4 — Medium | As a player, I want a private dashboard so I can review my scores. | An empty account shows an empty state; saved scores and totals appear correctly; other users cannot access my results. |
+| US5 — Medium | As a player, I want to update my display name and password. | Valid updates work; incorrect current passwords are rejected; password changes invalidate old credentials and sessions according to the documented flow. |
+
+These criteria define required behavior, not completed results. For US5, the password-change/session-invalidation flow must still be documented and implemented.
+
+## Earlier detailed checks
+
+The following Review 1 wording and US1–US5 heading anchors are retained for reference and existing links. The approved table above governs scope and acceptance; these examples are not additional stories or completion claims. US2’s controller checks remain planned hardware checks after the keyboard-first implementation. US4 and US5 describe Review 3 work; Review 2 needs the [minimum integrated journey](/planning/roadmap#mapping-stages-to-course-reviews).
 
 ### US1 — Account registration, login, and logout
 
@@ -51,7 +57,11 @@ As a signed-in player, I want to change my display name and password so I can ma
 - **Positive check:** Update the display name and change the password using the correct current password. After logging out, sign in with the new password and confirm the new name appears.
 - **Negative check:** Attempt a password change using an incorrect current password. The request is rejected and the current password still works.
 
-## Eventual acceptance criteria
+## Earlier research criteria
+
+The following Review 1 checklist is retained as research history. The approved stories above and engineering plan govern current scope. Earlier mentions of recovery, account deletion, mute, optional camera modes and visual polish do not add requirements to the five approved stories. Controller edge cases remain useful hardware test evidence.
+
+### Eventual acceptance criteria {#eventual-acceptance-criteria}
 
 | ID | Requirement | Evidence needed later |
 | --- | --- | --- |
@@ -72,4 +82,4 @@ As a signed-in player, I want to change my display name and password so I can ma
 
 Proposed: responsive desktop layout, 60 FPS target with 30 FPS fallback, and a useful load indicator. Select a load-time and download-size budget after measuring the first scene. Do not treat targets as completed tests.
 
-The [account plan](/planning/accounts) explains the backend boundary. The documentation site itself contains no user system.
+The [backend record](/planning/accounts) distinguishes local implementation from remaining integration work.

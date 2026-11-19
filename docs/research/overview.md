@@ -2,7 +2,7 @@
 
 November 11, 2026 · Direction selected
 
-**Decision:** Three.js browser highway driving, keyboard and Bluetooth Xbox/PlayStation controllers on Mac, followed by Flask/SQLite accounts and scores. Physics-library selection remains open. No Swift or Metal implementation.
+**Current approved direction:** Three.js + vanilla JavaScript + Vite browser highway driving, with Flask/SQLite accounts and scores. Keyboard and Bluetooth Xbox/PlayStation controllers on Mac remain required; hardware compatibility is unverified. Basic movement and collisions are sufficient initially; Rapier is a possible later experiment. No Swift or Metal implementation. See the [engineering plan](/planning/engineering-plan) and [local Stage 1 evidence](/planning/experiments#stage-1-verification). The research below preserves the November 11 snapshot.
 
 The question is whether AI-assisted development can produce an enjoyable, small, optimized 3D highway game with a third-person follow camera that classmates can open in a browser. We also need to find out which parts remain difficult even when AI writes much of the code.
 

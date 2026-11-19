@@ -2,7 +2,7 @@
 
 ## D01 · Documentation first
 
-**Accepted · November 11, 2026.** Keep VitePress as the research notebook. This update adds research and plans only.
+**Accepted · November 11, 2026.** Keep VitePress as the research notebook. The November 11 update added research and plans only; subsequent local Stage 1 implementation is recorded separately.
 
 ## D02 · Highway driving selected
 
@@ -14,11 +14,11 @@
 
 ## D04 · Flask and SQLite planned
 
-**Accepted direction for later implementation.** Use Flask for accounts, authorization, and score endpoints, with server-side SQLite persistence. Hosting and recovery details remain open.
+**Accepted direction; local Stage 1 implementation now exists.** Use Flask for accounts, authorization, and score endpoints, with server-side SQLite persistence. Hosting and recovery details remain open.
 
 ## D05 · Evidence before claims
 
-**Accepted.** Distinguish documented tool capabilities, design proposals, and measured results. No game experiments have been run and no commercial-level visual quality is promised.
+**Accepted.** Distinguish documented tool capabilities, design proposals, and measured results. No driving or controller experiment has been run and no commercial-level visual quality is promised. Backend test evidence is recorded separately.
 
 ## D06 · Keep the local notebook running
 
@@ -30,4 +30,13 @@
 
 ## D08 · Rapier leads the physics shortlist
 
-**Proposed.** Its vehicle controller is a useful starting point. Compare integration effort and behavior with cannon-es if necessary. Do not install a game engine or implement driving during this research update.
+**Historical proposal, superseded for the initial slice by D09.** Its vehicle controller is a useful starting point. Compare integration effort and behavior with cannon-es if necessary. Do not install a game engine or implement driving during this research update.
+
+
+## D09 · Approved agile and engineering plan
+
+**Accepted · November 18, 2026.** Integrate the supplied [engineering plan](/planning/engineering-plan). Use Three.js + vanilla JavaScript + Vite, Flask and SQLite, with the existing VitePress research site on GitHub Pages. Basic movement and collisions are sufficient initially; Rapier is a possible later experiment. The [five stories](/planning/specification#five-user-stories) and [four milestones](/planning/roadmap#implementation-milestones) govern implementation. The complete game initially runs locally; public backend hosting is open.
+
+Keep modules focused, apply SRP, dependency inversion, KISS and DRY, and compare a Strategy-style keyboard/controller input interface with direct conditionals before choosing. No additional design patterns are approved without a specific problem. The plan owns the testing, quality and Definition of Done details.
+
+Local backend evidence does not establish completed gameplay, physical controller compatibility or a finished user journey. Source is recorded in [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b); see the [verification record](/planning/experiments#stage-1-verification).
