@@ -2,6 +2,14 @@
 
 **Approved · November 2026.** The [engineering plan](/planning/engineering-plan) defines the goal, audience assumption, scope, stack, architecture, testing strategy and Definition of Done. This page owns the five user stories and acceptance criteria.
 
+## Main workflow
+
+**Register → sign in → play a 20-second highway game → save score → view private results.** A collision may end the run early. Saving happens automatically after a valid completion; the game confirms success or shows an unsaved error. Sign-out closes the journey and is still part of US1.
+
+The main workflow uses US1–US3 and the private results list from US4. Dashboard totals and US5 account maintenance are later work; the five stories and acceptance criteria below remain unchanged. Keyboard gameplay and the saved-results journey have recorded implementation evidence. Controller support, mobile touch controls, and the full accessibility testing plan remain planned, not verified.
+
+**Review 2 is the project plan/SPEC only, due November 26, 2026 at 2:30 PM ET.** Review 3 Integrated Build is November 30. Existing implementation is supporting evidence, not a requirement to finish the application for Review 2. See the [roadmap](/planning/roadmap#mapping-stages-to-course-reviews).
+
 ## First version
 
 See the approved [first driving slice and project boundaries](/planning/engineering-plan#_1-project-goal-and-scope). Controller support remains required and separately subject to real-hardware testing. The keyboard game and minimum account-to-saved-run journey are now verified locally; see the [Stage 3 results](/planning/experiments#stage-3-verification). This does not complete future controller, full dashboard, or account-maintenance requirements.
@@ -20,7 +28,7 @@ These criteria define required behavior, not completed results. For US5, the pas
 
 ## Earlier detailed checks
 
-The following Review 1 wording and US1–US5 heading anchors are retained for reference and existing links. The approved table above governs scope and acceptance; these examples are not additional stories or completion claims. US2’s controller checks remain planned hardware checks after the keyboard-first implementation. US4 and US5 describe Review 3 work; Review 2 needs the [minimum integrated journey](/planning/roadmap#mapping-stages-to-course-reviews).
+The following Review 1 wording and US1–US5 heading anchors are retained for reference and existing links. The approved table above governs scope and acceptance; these examples are not additional stories or completion claims. US2’s controller checks remain planned hardware checks after the keyboard-first implementation. The remaining US4 and US5 work belongs to the build backlog; Review 2 documents the plan and Review 3 is the [Integrated Build checkpoint](/planning/roadmap#mapping-stages-to-course-reviews).
 
 ### US1 — Account registration, login, and logout
 
@@ -82,4 +90,4 @@ The following Review 1 checklist is retained as research history. The approved s
 
 Proposed: responsive desktop layout, 60 FPS target with 30 FPS fallback, and a useful load indicator. Select a load-time and download-size budget after measuring the first scene. Do not treat targets as completed tests.
 
-The [backend record](/planning/accounts) distinguishes local implementation from remaining integration work.
+See the [accessibility and phone testing plan](/planning/engineering-plan#accessibility-and-phone-testing-plan), [privacy and cookies](/planning/accounts#privacy-and-cookies), and [backend record](/planning/accounts) for current behavior and planned work.
