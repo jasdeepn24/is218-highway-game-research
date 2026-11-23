@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | Three.js browser frontend | Rendering, controls, local simulation, run summary | Browser-submitted data is untrusted |
 | Flask server | Registration, authentication, sessions, access checks, score validation | Derives user identity from the authenticated session |
-| SQLite database | Users, scores, profile/preferences | Stored on the server, never exposed as a public file |
+| SQLite database | User IDs, usernames, password hashes and owned runs | Stored on the server, never exposed as a public file |
 | VitePress | Research and specifications | Separate from private application data |
 
 For the first local application, Flask can serve the game files and API from the same origin. This keeps session handling simpler than separate frontend/backend origins. Hosting is a later decision; localhost can support the first demonstration. [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) can host documentation/static files but cannot run this Flask backend.
@@ -63,3 +63,30 @@ and local `game-app/README.md` for exact commands, tests, and limitations.
 Local logout clears the browser session; the current signed-cookie approach does not centrally revoke a copied session cookie. US5 still needs a documented password-change/session-invalidation flow. Score plausibility checks cannot prove honest gameplay.
 
 The committed [Stage 1 README](https://github.com/jasdeepn24/is218-highway-game-research/blob/c9f6f441150b3898225129a12622f5a4a2824f1b/game-app/README.md) contains local setup and API details. Public backend hosting remains open; the complete game is initially intended to run locally.
+
+## Privacy and cookies
+
+**Current data:** SQLite stores user ID, username and password hash, plus each run's ID, owner ID, start time, completion time and score. Unfinished runs have no completion time or score. The app does not request email, real name or location. Display names/preferences are not stored yet. Use synthetic accounts for class testing and avoid personal details in usernames.
+
+**Login cookie:** Flask uses a signed session cookie for login and CSRF/session state, not advertising. Signing protects against tampering; it does not encrypt the contents. Passwords and score history are not stored in it. The current configuration uses `HttpOnly`, `SameSite=Lax` and a two-hour lifetime that can refresh with activity. `Secure` is enabled when `HIGHWAY_HTTPS=1`; public deployment would need HTTPS and this setting. See [Flask's cookie-security guidance](https://flask.palletsprojects.com/en/stable/web-security/). Signing out clears the browser session, but does not centrally revoke a copied cookie. Password-change/session invalidation remains planned.
+
+**Access protection:** Flask requires sign-in for the game, results and run API, derives ownership from the session, validates submissions, uses parameterized SQL and CSRF protection, and hashes passwords. SQLite and secrets stay out of Git and the public documentation site. These measures are not a security audit or a guarantee against cheating.
+
+**Retention/deletion plan:** Accounts and completed scores currently remain in the local database until manually removed; there is no automatic retention policy or account-deletion screen. Proposed policy: keep class demonstration data only through grading, then remove test accounts and their runs. Before using real accounts, define a deletion-request process, verify ownership, delete related runs before the account, and document how any backups will expire. This is planning, not an implemented deletion feature or a change to US5.
+
+**Practical considerations:** Explain data use before inviting real users, collect only what the workflow needs, and keep identifying data out of public screenshots and feedback. No third-party analytics is being added. The public GitHub Pages research site is separate from the local login app; hosting-provider data handling needs review before public deployment. Privacy/cookie obligations depend on the eventual audience and hosting; check applicable requirements before launch rather than claiming full legal compliance. The [accessibility plan](/planning/engineering-plan#accessibility-and-phone-testing-plan) also covers clear labels, errors and keyboard use of account screens.
+
+## Usage measure: completed runs per week
+
+**Planned measurement; no usage results collected here.** Count saved, completed runs to see whether players finish and save a session. Include both collision endings and 20-second finishes; exclude unfinished tickets and unsaved attempts. This measures saved completions, not unique players or every game played.
+
+Once a week, the project owner can open the existing SQLite database locally in read-only mode and run:
+
+```sql
+SELECT COUNT(*) AS completed_runs
+FROM runs
+WHERE completed_at >= :week_start_utc
+  AND completed_at < :next_week_start_utc;
+```
+
+Bind the two parameters to Unix timestamps for consecutive Monday 00:00 UTC boundaries. Use the same UTC week definition each time; record the date range and aggregate count only. Use the demonstration database consistently and keep automated-test databases separate. A completed row is counted once even when a save is retried. No new table, tracking cookie, third-party service or application endpoint is needed. This check has not been run as part of the SPEC update.

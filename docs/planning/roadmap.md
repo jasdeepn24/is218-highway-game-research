@@ -42,14 +42,33 @@ See also the [career research site](https://jasdeepn24.github.io/is218-career-po
 
 ### Mapping stages to course reviews
 
-Per the posted Review 2 requirement supplied for this update, the first working slice must demonstrate **signup → login → playable highway run → saved result → logout**. Backend tests or a standalone driving demo do not complete Review 2. Stages 1 and 2 plus the minimum Stage 3 integration needed to persist a real run belong to Review 2; a saved-result confirmation is sufficient for this slice, without the full private dashboard. **Review 3** completes the full private dashboard/history and account maintenance in Stage 3, followed by Stage 4 review and handoff. These course checkpoints do not replace the four development stages.
+Professor Williams's clarification, supplied by the project owner on November 23, supersedes the earlier working-application requirement for Review 2.
+
+| Checkpoint | Due | Deliverable |
+| --- | --- | --- |
+| Review 2 — Project plan/SPEC | November 26, 2026, 2:30 PM ET | Main workflow, five stories/criteria, technology rationale, data flow, testing/accessibility/mobile plan, privacy/cookies, usage measure and roadmap. A finished application is not required. |
+| Review 3 — Integrated Build | November 30, 2026 | Demonstrate the connected register → sign in → play → save → private-results workflow and record actual verification and remaining gaps. |
+
+Stages 1–3 are the development sequence supporting the Integrated Build, not Review 2 prerequisites. Keyboard gameplay and minimum integration already have evidence. Dashboard totals, account maintenance, controller support and mobile controls remain build-backlog work, not completed features. These course checkpoints do not replace the four development stages; no Review 3 submission time has been supplied.
 
 Introduce relevant fast lint/test CI checks alongside Stages 1–3 as tools become configured; Stage 4 consolidates regression evidence and handoff rather than postponing all CI until then. Keyboard gameplay comes first; Xbox/PlayStation controller support remains planned and requires physical testing.
 
 **Responsibilities:** I define requirements, choose the design, review AI-generated code, verify the application, and maintain the project record. Codex assists with implementation and tests. A real classmate provides independent feedback. AI does not replace the reviewer.
 
-These are approved milestones, not completion claims. Stage 1 has a local implementation and a verified backend test run, with source recorded in [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b). See the [verification record](/planning/experiments#stage-1-verification). Stage 2 and the minimum Review 2 integration are now verified locally; see the [Stage 3 record](/planning/experiments#stage-3-verification). Full Review 3 dashboard/account maintenance and Stage 4 remain unfinished. Hardware controller checks and the input-pattern experiment remain open.
+These are approved milestones, not completion claims. Stage 1 has a local implementation and a verified backend test run, with source recorded in [Stage 1 commit `c9f6f44`](https://github.com/jasdeepn24/is218-highway-game-research/commit/c9f6f441150b3898225129a12622f5a4a2824f1b). See the [verification record](/planning/experiments#stage-1-verification). Stage 2 and minimum gameplay integration have local verification and were merged in PR #4; see the [Stage 3 record](/planning/experiments#stage-3-verification) and [GitHub status](/planning/experiments#current-github-status). Full Review 3 dashboard/account maintenance and Stage 4 remain unfinished. Hardware controller checks and the input-pattern experiment remain open.
 
 ## Open details
 
 Exact Xbox and PlayStation controller models for hardware testing are still unknown. Any additional submission instructions beyond the details recorded here still need to be checked against the course assignment.
+
+## Review 2 peer SPEC feedback and revisions
+
+**Pending: no Review 2 SPEC feedback has been received or recorded.** The earlier issue #2 above is historical feedback, not a new Review 2 review.
+
+Ask a classmate whether the main workflow, scope, technology choices and acceptance criteria are understandable. After actual feedback arrives, record:
+
+| Date / reviewer / issue link | Actual feedback and affected section | Revision or reason for no change | Recheck / reviewer follow-up |
+| --- | --- | --- | --- |
+| Pending | Awaiting real SPEC feedback | No feedback-driven revision yet | Not performed |
+
+The November 23 documentation revision reflects Professor Williams's checkpoint clarification and the owner's approved changes; it is not peer-testing evidence.

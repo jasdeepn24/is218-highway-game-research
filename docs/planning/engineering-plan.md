@@ -9,7 +9,7 @@ Approved decisions and planned requirements are recorded here; implementation ev
 
 **Target audience:** Students and casual players interested in short driving games. This is an initial design assumption, not a verified user-research result.
 
-**Working promise:** A player can register, sign in, complete a highway run, save the result, view private history, update their account, and sign out.
+**Main workflow:** Register → sign in → play a 20-second highway game → save score → view private results. Collisions can end a run early. Account maintenance and dashboard totals remain later work; sign-out stays part of US1.
 
 **First driving slice:** One three-lane highway, a third-person camera, a controllable car, basic traffic or obstacles, collisions, scoring, and a 20-second run with replay. Implement keyboard gameplay first; Xbox/PlayStation controller support remains a planned requirement with separate physical testing.
 
@@ -21,7 +21,7 @@ The [specification](/planning/specification#five-user-stories) is the canonical 
 
 ## 3. Prioritized backlog and milestones
 
-The [roadmap](/planning/roadmap#implementation-milestones) records the four approved stages, dependencies, evidence and responsibilities alongside the preserved Review 1 record. Its [course-review mapping](/planning/roadmap#mapping-stages-to-course-reviews) requires the integrated signup → login → playable highway run → saved result → logout slice for Review 2; the full private dashboard and account maintenance belong to Review 3.
+The [roadmap](/planning/roadmap#implementation-milestones) records the four approved stages, dependencies, evidence and responsibilities alongside the preserved Review 1 record. Its [course-review mapping](/planning/roadmap#mapping-stages-to-course-reviews) records Review 2 as SPEC only (November 26, 2:30 PM ET) and Review 3 as Integrated Build (November 30).
 
 ## 4. Technology architecture
 
@@ -53,7 +53,11 @@ Separate VitePress research website
 - **SQLite:** Persistent storage without a separate database server.
 - **VitePress + GitHub Pages:** Continue publishing research and project evidence.
 
-**Alternatives and tradeoffs:** Godot or Unity would require changing the existing browser-oriented approach. React/Next.js would add framework complexity. Rapier is a possible later physics experiment, but basic movement and collisions are sufficient initially. A hosted database is unnecessary for the local demonstration.
+**Why this fits:** Three.js handles the 3D scene while plain JavaScript keeps the small game loop and controls easy to follow. Vite builds the browser files; Flask handles accounts and score requests; SQLite keeps data between runs without another server to manage.
+
+**Brief comparison:** React/Next.js could help a larger interface-heavy website, but this small game does not need an additional UI framework alongside Three.js and Flask. Unity offers an editor and broader game-engine tooling, but would change the existing JavaScript workflow and build process. Keeping the selected stack makes the project easier to explain and maintain. Rapier remains a possible later physics experiment; basic movement and collisions are sufficient initially.
+
+**Data flow:** Registration/login forms go to Flask, which validates them and stores or checks a password hash in SQLite. After login, the browser sends its session cookie with requests. Flask serves the Vite-built game and issues an owned run ID. Three.js runs the game in the browser; completion addresses that run ID and sends the score, active duration and end reason as JSON with a CSRF token. Flask checks the session, ownership and result, then saves the score and completion time in SQLite. The private results page reads only that user's completed runs. The browser never accesses SQLite directly. Duration and end reason are validated but are not stored as database columns.
 
 **Hosting limitation:** GitHub Pages publishes static content and cannot run Flask. The complete game will initially run locally. Public backend hosting is an open decision, not a current requirement.
 
@@ -88,12 +92,22 @@ Do not introduce additional design patterns unless a specific problem justifies 
 |---|---|---|
 | Unit | Known movement inputs, frame-rate consistency, collision boundaries, timer, pause, scoring | Vitest |
 | Integration | Valid/invalid login, persistence, private ownership, CSRF protection, invalid results, duplicate submissions | pytest |
-| End-to-end | Signup → login → playable run → saved result → logout; returning user or unauthorized-access scenario | Playwright, Chromium |
+| End-to-end | Register → sign in → play → save → private results → sign out; returning user or unauthorized-access scenario | Manual Chrome journey recorded; Playwright automation planned |
 | Manual | Visual driving behavior, controls, readability, real controller compatibility | Local browser and actual hardware |
 
 **Efficiency:** Run focused fast tests during development. Run the complete unit/integration suite before merging. Use one or two high-value E2E journeys rather than repeating every individual rule in a browser.
 
 Use synthetic accounts and isolated test databases. Record expected results independently of implementation. Test failure and boundary cases, not just successful behavior.
+
+### Accessibility and phone testing plan
+
+**Planned; not performed in this documentation update.** Existing keyboard gameplay checks do not establish full keyboard accessibility or phone support.
+
+- **Keyboard:** Use Tab/Shift+Tab and Enter/Space through registration, sign-in, game actions, results and sign-out. Check visible focus, logical order, labeled fields, understandable errors, no keyboard traps, and usable pause/replay. Check that gameplay keys do not interfere with typing in forms. Record any failures before claiming accessibility improvements.
+- **Phone layout:** Check 320, 375 and 390 CSS-pixel widths, portrait/landscape, and enlarged text. Forms, instructions, score, errors and buttons should remain readable without overlap or horizontal page scrolling. Then check on an actual phone, recording device/browser; a narrow desktop preview alone is insufficient.
+- **Touch controls:** Plan visible left/right, accelerate/brake, pause and replay buttons, with generous spacing and a target of at least 44 × 44 CSS pixels. Test steering while accelerating, release/cancel behavior, rotation and focus loss. These controls are not implemented; phone layout testing does not prove touch gameplay works.
+
+Use [W3C accessibility principles](https://www.w3.org/WAI/fundamentals/accessibility-principles/) and [WCAG 2.2](https://www.w3.org/TR/WCAG22/) as guidance for keyboard access, focus, labels, contrast and reflow. Check text instructions and results as well as the 3D canvas. Screen-reader access to real-time driving remains an unresolved limitation; no full accessibility or legal-compliance claim is made. Record actual checks in the [experiment log](/planning/experiments).
 
 ## 7. Code quality and automation
 
@@ -109,15 +123,15 @@ Use synthetic accounts and isolated test databases. Record expected results inde
 
 | Tool / status | Command and working directory | When to run |
 | --- | --- | --- |
-| pytest — operational locally | From `game-app/`: `.venv/bin/python -m pytest -q`; use `-k <case>` for focused checks | Relevant backend edits; full suite before merging backend/integration changes. The [recorded run](/planning/experiments#stage-1-verification) passed 38 tests. |
+| pytest — operational locally and in CI | From `game-app/`: `.venv/bin/python -m pytest -q`; use `-k <case>` for focused checks | Relevant backend edits; full suite before merging backend/integration changes. The [recorded run](/planning/experiments#stage-1-verification) passed 38 tests at Stage 1; the [Stage 3 record](/planning/experiments#stage-3-verification) reports 51. |
 | Ruff — proposed | From `game-app/`: `.venv/bin/python -m ruff check highway tests` and `.venv/bin/python -m ruff format --check highway tests` | Python edits and relevant CI; use `ruff format` locally when formatting is needed. |
-| ESLint — proposed | From the future frontend package directory: `./node_modules/.bin/eslint .` | JavaScript edits and relevant CI, with generated files excluded by configuration. |
-| Vitest — proposed | From that package: `./node_modules/.bin/vitest run`; append a test-file filter for focused runs | Gameplay-rule edits; full unit suite before merging relevant changes. |
-| Playwright — proposed | From that package: `./node_modules/.bin/playwright test --project=chromium` | Integration checkpoints and before merging journey changes; one or two high-value journeys, including the Review 2 flow. |
+| ESLint — proposed | From `game-app/frontend/` (configuration still planned): `./node_modules/.bin/eslint .` | JavaScript edits and relevant CI, with generated files excluded by configuration. |
+| Vitest — operational locally and in CI | From `game-app/frontend/`: `npm test`; append a test-file filter for focused runs | Gameplay-rule edits; full unit suite before merging relevant changes. |
+| Playwright — proposed | From that package: `./node_modules/.bin/playwright test --project=chromium` | Integration checkpoints and before merging journey changes; one or two high-value journeys, including the main workflow for the Integrated Build. |
 
-Ruff and the JavaScript tools still need dependencies/configuration; the frontend package, tests and named Chromium project are planned. These commands are proposals, not checks run here, and are not installation instructions. Command references: [Ruff](https://docs.astral.sh/ruff/tutorial/), [ESLint](https://eslint.org/docs/latest/use/command-line-interface), [Vitest](https://vitest.dev/guide/cli.html), [Playwright](https://playwright.dev/docs/test-cli).
+The frontend package and Vitest tests exist. Ruff, ESLint and Playwright configuration (including a named Chromium project) remain planned; their commands are proposals. The recorded Chrome journey was manual, not a Playwright test. No application tests were rerun for this documentation update. Command references: [Ruff](https://docs.astral.sh/ruff/tutorial/), [ESLint](https://eslint.org/docs/latest/use/command-line-interface), [Vitest](https://vitest.dev/guide/cli.html), [Playwright](https://playwright.dev/docs/test-cli).
 
-Keep local feedback focused; run full unit/integration suites and lint checks in relevant CI before merging, and gate integrated journeys at checkpoints instead of repeating every rule in a browser. Documentation-only edits use the already-operational root command `npm run docs:build` plus link checks. Existing CI deploys VitePress only; add application checks during the relevant development stages, not only at handoff. Do not rerun unchanged application suites for documentation-only edits.
+Keep local feedback focused; run full unit/integration suites and lint checks in relevant CI before merging, and gate integrated journeys at checkpoints instead of repeating every rule in a browser. Documentation-only edits use the already-operational root command `npm run docs:build` plus link checks. Existing CI also runs pytest, Vitest and the Vite build; see the [GitHub status evidence](/planning/experiments#current-github-status). Lint and browser automation remain planned. Do not rerun unchanged application suites for documentation-only edits.
 
 ## 8. Definition of Done and project review
 
